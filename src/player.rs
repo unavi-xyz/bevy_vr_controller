@@ -8,7 +8,7 @@ use bevy_vrm::{
     VrmBundle,
 };
 
-use crate::{first_person::FirstPerson, velocity::AverageVelocity};
+use crate::{first_person::FirstPerson, movement::PlayerInputState, velocity::AverageVelocity};
 
 pub struct PlayerSettings {
     pub height: f32,
@@ -26,7 +26,7 @@ impl Default for PlayerSettings {
             height: 1.6,
             jump_height: 1.0,
             spawn: Vec3::default(),
-            speed: 1.0,
+            speed: 6.0,
             void_level: None,
             vrm: None,
             width: 0.4,
@@ -41,6 +41,7 @@ impl PlayerSettings {
             LockedAxes::ROTATION_LOCKED,
             PlayerBody,
             PlayerHeight(self.height),
+            PlayerInputState::default(),
             PlayerJumpHeight(self.jump_height),
             PlayerSpawn(self.spawn),
             PlayerSpeed(self.speed),
