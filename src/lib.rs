@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_tnua::prelude::TnuaControllerPlugin;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
+use bevy_vrm::VrmPlugins;
 
 pub mod animation;
 mod eye_offset;
@@ -19,7 +20,9 @@ impl Plugin for VrControllerPlugin {
         app.add_plugins((
             TnuaAvian3dPlugin::default(),
             TnuaControllerPlugin::default(),
+            VrmPlugins,
         ))
+        .init_resource::<input::InputMap>()
         .add_event::<look::CameraLookEvent>()
         .add_systems(
             Update,

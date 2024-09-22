@@ -24,9 +24,9 @@ pub(crate) fn init_animations(
     mut commands: Commands,
 ) {
     for (entity, parent) in animation_players.iter_mut() {
-        let graph = animation_nodes
-            .get(parent.get())
-            .expect("Failed to initialize animation, animation nodes not found");
+        let Ok(graph) = animation_nodes.get(parent.get()) else {
+            continue;
+        };
 
         commands.entity(entity).insert((
             AnimationWeights::default(),

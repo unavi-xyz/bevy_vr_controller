@@ -63,7 +63,7 @@ pub fn apply_camera_look(
     mut cameras: Query<(&mut Transform, &CameraFreeLook), With<Camera>>,
     mut free_yaw: Local<Option<Quat>>,
     mut look_events: EventReader<CameraLookEvent>,
-    mut players: Query<(&mut Transform, &Children), With<PlayerBody>>,
+    mut players: Query<(&mut Transform, &Children), (With<PlayerBody>, Without<Camera>)>,
     mut target_pitch: Local<Quat>,
     mut target_yaw: Local<Quat>,
     time: Res<Time>,

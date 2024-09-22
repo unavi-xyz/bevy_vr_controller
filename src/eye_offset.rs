@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_vrm::BoneName;
 
-use crate::first_person::FirstPerson;
+use crate::{first_person::FirstPerson, player::PlayerHeight};
 
 #[derive(Component, Deref, DerefMut)]
 pub struct EyeOffset(pub Vec3);
@@ -9,16 +9,16 @@ pub struct EyeOffset(pub Vec3);
 pub(crate) fn calc_eye_offset(
     mut commands: Commands,
     mut scene_assets: ResMut<Assets<Scene>>,
-    mut to_calc: Local<Vec<Entity>>,
+    mut to_calc: Local<Vec<(Entity, f32)>>,
     mut to_remove: Local<Vec<Entity>>,
-    new_scenes: Query<Entity, (With<FirstPerson>, Added<Handle<Scene>>)>,
+    new_scenes: Query<(Entity, &PlayerHeight), (With<FirstPerson>, Added<Handle<Scene>>)>,
     scenes: Query<&Handle<Scene>>,
 ) {
-    for ent in new_scenes.iter() {
-        to_calc.push(ent);
+    for (ent, height) in new_scenes.iter() {
+        to_calc.push((ent, height.0));
     }
 
-    for ent in to_calc.iter() {
+    for (ent, height) in to_calc.iter() {
         let handle_scene = scenes.get(*ent).expect("Scene handle not found");
 
         let Some(scene) = scene_assets.get_mut(handle_scene) else {
@@ -67,7 +67,7 @@ pub(crate) fn calc_eye_offset(
             head_tr.translation()
         };
 
-        offset.y += 0.08;
+        offset.y += 0.08 - height / 2.0;
         offset.z -= 0.08;
 
         commands.entity(*ent).insert(EyeOffset(offset));
@@ -79,7 +79,7 @@ pub(crate) fn calc_eye_offset(
         let new_calc = to_calc
             .iter()
             .copied()
-            .filter(|x| x == ent)
+            .filter(|(x, _)| x == ent)
             .collect::<Vec<_>>();
         *to_calc = new_calc;
     }

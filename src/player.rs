@@ -12,6 +12,9 @@ use crate::{first_person::FirstPerson, velocity::AverageVelocity};
 
 pub struct PlayerSettings {
     pub height: f32,
+    pub jump_height: f32,
+    pub spawn: Vec3,
+    pub speed: f32,
     pub void_level: Option<f32>,
     pub vrm: Option<Handle<Vrm>>,
     pub width: f32,
@@ -21,6 +24,9 @@ impl Default for PlayerSettings {
     fn default() -> Self {
         Self {
             height: 1.6,
+            jump_height: 1.0,
+            spawn: Vec3::default(),
+            speed: 1.0,
             void_level: None,
             vrm: None,
             width: 0.4,
@@ -35,11 +41,14 @@ impl PlayerSettings {
             LockedAxes::ROTATION_LOCKED,
             PlayerBody,
             PlayerHeight(self.height),
-            PlayerSpeed(1.0),
-            PlayerJumpHeight(1.0),
-            PlayerSpawn(Vec3::default()),
+            PlayerJumpHeight(self.jump_height),
+            PlayerSpawn(self.spawn),
+            PlayerSpeed(self.speed),
             RigidBody::Dynamic,
-            SpatialBundle::default(),
+            SpatialBundle {
+                global_transform: GlobalTransform::from_translation(self.spawn),
+                ..default()
+            },
             TnuaAvian3dSensorShape(Collider::cylinder((self.width / 2.0) * 0.95, 0.0)),
             TnuaControllerBundle::default(),
         ));
@@ -57,6 +66,7 @@ impl PlayerSettings {
                     ..default()
                 },
                 PlayerAvatar,
+                PlayerHeight(self.height),
                 VrmBundle {
                     scene_bundle: SceneBundle {
                         transform: Transform::from_xyz(0.0, -self.height / 2.0, 0.0),
@@ -77,7 +87,6 @@ impl PlayerSettings {
                 },
                 CameraFreeLook(false),
                 PlayerCamera,
-                PlayerHeight(self.height),
                 RenderLayers::layer(0).union(&RENDER_LAYERS[&FirstPersonFlag::FirstPersonOnly]),
             ))
             .id();

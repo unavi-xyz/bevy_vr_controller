@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 use bevy_vrm::BoneName;
 
-use crate::{
-    eye_offset::EyeOffset,
-    player::{PlayerCamera, PlayerHeight},
-};
+use crate::{eye_offset::EyeOffset, player::PlayerCamera};
 
 #[derive(Component)]
 pub struct AvatarHead(pub Entity);
@@ -44,7 +41,7 @@ fn is_child(target_child: Entity, target_parent: Entity, parents: &Query<&Parent
 pub struct BaseRotation(pub Quat);
 
 pub(crate) fn rotate_avatar_head(
-    avatars: Query<(&AvatarHead, &PlayerHeight, &EyeOffset)>,
+    avatars: Query<(&AvatarHead, &EyeOffset)>,
     mut bones: Query<
         (&mut Transform, Option<&BaseRotation>),
         (With<BoneName>, Without<PlayerCamera>),
@@ -52,7 +49,7 @@ pub(crate) fn rotate_avatar_head(
     mut cameras: Query<&mut Transform, With<PlayerCamera>>,
     mut commands: Commands,
 ) {
-    for (head, height, offset) in avatars.iter() {
+    for (head, offset) in avatars.iter() {
         let (mut head_tr, base) = bones.get_mut(head.0).expect("Avatar head bone not found");
 
         let Some(base) = base else {
@@ -63,7 +60,7 @@ pub(crate) fn rotate_avatar_head(
         };
 
         let mut camera_tr = cameras.single_mut();
-        camera_tr.translation = Vec3::new(0.0, -height.0 / 2.0, 0.0) + offset.0;
+        camera_tr.translation = offset.0;
 
         let new_rot = base.0 * camera_tr.rotation;
         head_tr.rotation = new_rot;
