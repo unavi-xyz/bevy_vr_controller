@@ -1,0 +1,10 @@
+[package]
+name = "bevy_vr_controller"
+description = "VR character controller for Bevy"
+version = "0.0.0"
+edition = "2021"
+repository = "https://github.com/unavi-xyz/bevy_vr_controller"
+license = "MIT OR Apache-2.0"
+
+[profile.release]
+lto = "thin"
