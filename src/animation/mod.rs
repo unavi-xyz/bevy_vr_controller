@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+pub mod defaults;
 pub(crate) mod load;
 mod mixamo;
 pub(crate) mod weights;

@@ -8,9 +8,13 @@ use bevy_vrm::{
     VrmBundle,
 };
 
-use crate::{first_person::FirstPerson, movement::PlayerInputState, velocity::AverageVelocity};
+use crate::{
+    animation::load::AvatarAnimationClips, first_person::FirstPerson, movement::PlayerInputState,
+    velocity::AverageVelocity,
+};
 
 pub struct PlayerSettings {
+    pub animations: Option<AvatarAnimationClips>,
     pub height: f32,
     pub jump_height: f32,
     pub spawn: Vec3,
@@ -23,6 +27,7 @@ pub struct PlayerSettings {
 impl Default for PlayerSettings {
     fn default() -> Self {
         Self {
+            animations: None,
             height: 1.6,
             jump_height: 1.0,
             spawn: Vec3::default(),
@@ -60,25 +65,29 @@ impl PlayerSettings {
 
         let body = body.id();
 
-        let avatar = commands
-            .spawn((
-                AverageVelocity {
-                    target: Some(body),
+        let mut avatar = commands.spawn((
+            AverageVelocity {
+                target: Some(body),
+                ..default()
+            },
+            PlayerAvatar,
+            PlayerHeight(self.height),
+            VrmBundle {
+                scene_bundle: SceneBundle {
+                    transform: Transform::from_xyz(0.0, -self.height / 2.0, 0.0),
                     ..default()
                 },
-                PlayerAvatar,
-                PlayerHeight(self.height),
-                VrmBundle {
-                    scene_bundle: SceneBundle {
-                        transform: Transform::from_xyz(0.0, -self.height / 2.0, 0.0),
-                        ..default()
-                    },
-                    vrm: self.vrm.clone().unwrap_or_default(),
-                    ..default()
-                },
-                FirstPerson,
-            ))
-            .id();
+                vrm: self.vrm.clone().unwrap_or_default(),
+                ..default()
+            },
+            FirstPerson,
+        ));
+
+        if let Some(value) = &self.animations {
+            avatar.insert(value.clone());
+        }
+
+        let avatar = avatar.id();
 
         let camera = commands
             .spawn((

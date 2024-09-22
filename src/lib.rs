@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{asset::embedded_asset, prelude::*};
 use bevy_tnua::prelude::TnuaControllerPlugin;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
 use bevy_vrm::VrmPlugins;
@@ -46,5 +46,7 @@ impl Plugin for VrControllerPlugin {
                     .chain(),
             ),
         );
+
+        embedded_asset!(app, "animation/default-animations.glb");
     }
 }

@@ -1,6 +1,8 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy_vr_controller::{player::PlayerSettings, VrControllerPlugin};
+use bevy_vr_controller::{
+    animation::defaults::default_character_animations, player::PlayerSettings, VrControllerPlugin,
+};
 
 fn main() {
     App::new()
@@ -49,6 +51,7 @@ fn setup_scene(
 
 fn setup_player(asset_server: Res<AssetServer>, mut commands: Commands) {
     PlayerSettings {
+        animations: Some(default_character_animations(&asset_server)),
         vrm: Some(asset_server.load("alicia.vrm")),
         void_level: Some(-20.0),
         spawn: Vec3::new(0.0, 3.0, 0.0),
