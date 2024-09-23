@@ -7,9 +7,9 @@ pub mod animation;
 mod eye_offset;
 mod first_person;
 mod head;
-mod input;
+pub mod input;
 mod look;
-mod movement;
+pub mod movement;
 pub mod player;
 mod velocity;
 

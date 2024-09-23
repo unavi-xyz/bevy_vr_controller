@@ -138,6 +138,7 @@ pub struct PlayerJumpHeight(pub f32);
 #[derive(Component)]
 pub struct PlayerSpawn(pub Vec3);
 
+/// If `true`, unlocks the yaw axis for the camera.
 #[derive(Component)]
 pub struct CameraFreeLook(pub bool);
 

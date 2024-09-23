@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
 pub mod defaults;
-pub(crate) mod load;
+pub mod load;
 mod mixamo;
-pub(crate) mod weights;
+pub mod weights;
 
 pub use load::AvatarAnimationNodes;
 use weights::{AnimationWeights, TargetAnimationWeights};
@@ -16,7 +16,7 @@ pub enum AnimationName {
     Walk,
     WalkLeft,
     WalkRight,
-    Other(String),
+    Other(&'static str),
 }
 
 pub(crate) fn init_animations(

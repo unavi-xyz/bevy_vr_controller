@@ -19,5 +19,8 @@ bevy-tnua-avian3d = "0.1.1"
 bevy_vrm = "0.0.12"
 paste = "1.0.15"
 
+[target.'cfg(target_family = "wasm")'.dependencies]
+web-sys = { version = "0.3.70", features = ["Navigator", "Window"] }
+
 [dev-dependencies]
 bevy = "0.14.2"
