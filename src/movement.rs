@@ -1,28 +1,33 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
+use bevy_mod_openxr::{helper_traits::ToVec3, resources::OxrViews};
+use bevy_mod_xr::session::XrTrackingRoot;
 use bevy_tnua::prelude::*;
 
-use crate::player::{PlayerHeight, PlayerJumpHeight, PlayerSpawn, PlayerSpeed, VoidTeleport};
+use crate::player::{
+    PlayerBody, PlayerHeight, PlayerJumpHeight, PlayerSpawn, PlayerSpeed, VoidTeleport,
+};
 
 #[derive(Component, Default)]
 pub struct PlayerInputState {
-    pub forward: bool,
-    pub backward: bool,
-    pub left: bool,
-    pub right: bool,
+    pub forward: f32,
+    pub left: f32,
     pub jump: bool,
 }
 
 pub fn move_player(
     mut last_time: Local<f32>,
-    mut players: Query<(
-        &Transform,
-        &mut PlayerInputState,
-        &PlayerHeight,
-        &PlayerSpeed,
-        &PlayerJumpHeight,
-        &mut TnuaController,
-    )>,
+    mut players: Query<
+        (
+            &Transform,
+            &mut PlayerInputState,
+            &PlayerHeight,
+            &PlayerSpeed,
+            &PlayerJumpHeight,
+            &mut TnuaController,
+        ),
+        With<PlayerBody>,
+    >,
     time: Res<Time>,
 ) {
     debug_assert!(*last_time >= 0.0);
@@ -33,18 +38,8 @@ pub fn move_player(
 
         let mut move_direction = Vec3::ZERO;
 
-        if input.forward {
-            move_direction += dir_forward;
-        }
-        if input.backward {
-            move_direction -= dir_forward;
-        }
-        if input.left {
-            move_direction += dir_left;
-        }
-        if input.right {
-            move_direction -= dir_left;
-        }
+        move_direction += dir_forward * input.forward;
+        move_direction += dir_left * input.left;
 
         let desired_velocity = move_direction.normalize_or_zero() * speed.0;
 
@@ -66,6 +61,43 @@ pub fn move_player(
     }
 
     *last_time = time.elapsed_seconds();
+}
+
+pub fn apply_xr_pose(
+    mut players: Query<
+        (&mut Transform, &PlayerHeight),
+        (With<PlayerBody>, Without<XrTrackingRoot>),
+    >,
+    views: Res<OxrViews>,
+) {
+    let Some(view) = views.first() else {
+        return;
+    };
+
+    for (mut player_tr, player_height) in players.iter_mut() {
+        // player_tr.translation += view.pose.position.to_vec3();
+        // player_tr.translation.y -= player_height.0 / 2.0;
+    }
+}
+
+pub fn move_xr_root(
+    players: Query<(&Transform, &PlayerHeight), (With<PlayerBody>, Without<XrTrackingRoot>)>,
+    mut xr_root: Query<&mut Transform, (With<XrTrackingRoot>, Without<PlayerBody>)>,
+    views: Res<OxrViews>,
+) {
+    let Some(view) = views.first() else {
+        return;
+    };
+
+    let Ok(mut root_tr) = xr_root.get_single_mut() else {
+        return;
+    };
+
+    for (player_tr, player_height) in players.iter() {
+        root_tr.translation = player_tr.translation;
+        root_tr.translation.y -= player_height.0 / 2.0;
+        // root_tr.translation -= view.pose.position.to_vec3();
+    }
 }
 
 pub fn void_teleport(

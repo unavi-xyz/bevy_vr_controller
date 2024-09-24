@@ -2,6 +2,7 @@ use bevy::{asset::embedded_asset, prelude::*};
 use bevy_tnua::prelude::TnuaControllerPlugin;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
 use bevy_vrm::VrmPlugins;
+use bevy_xr_utils::xr_utils_actions::XRUtilsActionSystemSet;
 
 pub mod animation;
 mod eye_offset;
@@ -22,8 +23,12 @@ impl Plugin for VrControllerPlugin {
             TnuaControllerPlugin::default(),
             VrmPlugins,
         ))
-        .init_resource::<input::InputMap>()
-        .add_event::<look::CameraLookEvent>()
+        .init_resource::<input::keyboard::InputMap>()
+        .add_event::<input::mouse::CameraLookEvent>()
+        .add_systems(
+            Startup,
+            input::xr::setup_xr_actions.before(XRUtilsActionSystemSet::CreateEvents),
+        )
         .add_systems(
             Update,
             (
@@ -33,15 +38,25 @@ impl Plugin for VrControllerPlugin {
                 eye_offset::calc_eye_offset,
                 first_person::setup_first_person,
                 head::set_avatar_head,
-                input::read_keyboard_input,
                 look::grab_mouse,
                 velocity::calc_average_velocity,
                 (
-                    (look::read_mouse_input, look::apply_camera_look).chain(),
+                    input::mouse::read_mouse_input,
+                    look::apply_camera_look,
                     (
-                        (movement::void_teleport, movement::move_player).chain(),
                         head::rotate_avatar_head,
-                    ),
+                        (
+                            (
+                                input::keyboard::read_keyboard_input,
+                                input::xr::read_xr_input,
+                            ),
+                            movement::void_teleport,
+                            movement::apply_xr_pose,
+                            movement::move_player,
+                            movement::move_xr_root,
+                        ),
+                    )
+                        .chain(),
                 )
                     .chain(),
             ),

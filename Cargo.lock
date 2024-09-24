@@ -152,7 +152,7 @@ dependencies = [
  "bitflags 2.6.0",
  "cc",
  "cesu8",
- "jni",
+ "jni 0.21.1",
  "jni-sys",
  "libc",
  "log",
@@ -891,6 +891,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_mod_openxr"
+version = "0.1.0-rc1"
+source = "git+https://github.com/awtterpip/bevy_oxr#cb3ba5496a47dcc743c319da4c7872cc2db02f0f"
+dependencies = [
+ "ash",
+ "bevy",
+ "bevy_mod_xr",
+ "d3d12",
+ "jni 0.20.0",
+ "ndk-context",
+ "openxr",
+ "thiserror",
+ "wgpu",
+ "wgpu-hal",
+ "winapi",
+]
+
+[[package]]
 name = "bevy_mod_outline"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -902,6 +920,14 @@ dependencies = [
  "nonmax",
  "thiserror",
  "wgpu-types",
+]
+
+[[package]]
+name = "bevy_mod_xr"
+version = "0.1.0-rc1"
+source = "git+https://github.com/awtterpip/bevy_oxr#cb3ba5496a47dcc743c319da4c7872cc2db02f0f"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]
@@ -1241,7 +1267,10 @@ dependencies = [
  "bevy",
  "bevy-tnua",
  "bevy-tnua-avian3d",
+ "bevy_mod_openxr",
+ "bevy_mod_xr",
  "bevy_vrm",
+ "bevy_xr_utils",
  "paste",
  "web-sys",
 ]
@@ -1306,6 +1335,17 @@ dependencies = [
  "wasm-bindgen",
  "web-sys",
  "winit",
+]
+
+[[package]]
+name = "bevy_xr_utils"
+version = "0.1.0-rc1"
+source = "git+https://github.com/awtterpip/bevy_oxr#cb3ba5496a47dcc743c319da4c7872cc2db02f0f"
+dependencies = [
+ "bevy",
+ "bevy_mod_openxr",
+ "bevy_mod_xr",
+ "openxr",
 ]
 
 [[package]]
@@ -1545,6 +1585,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cmake"
+version = "0.1.51"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb1e43aa7fd152b1f968787f7dbcdeb306d1867ff373c69955211876c053f91a"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "codespan-reporting"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1729,7 +1778,7 @@ dependencies = [
  "core-foundation-sys",
  "coreaudio-rs",
  "dasp_sample",
- "jni",
+ "jni 0.21.1",
  "js-sys",
  "libc",
  "mach2",
@@ -2564,6 +2613,20 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 
 [[package]]
 name = "jni"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "039022cdf4d7b1cf548d31f60ae783138e5fd42013f6271049d7df7afadef96c"
+dependencies = [
+ "cesu8",
+ "combine",
+ "jni-sys",
+ "log",
+ "thiserror",
+ "walkdir",
+]
+
+[[package]]
+name = "jni"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a87aa2bb7d2af34197c04845522473242e1aa17c12f4935d5856491a7fb8c97"
@@ -2849,6 +2912,12 @@ checksum = "e2d80299ef12ff69b16a84bb182e3b9df68b5a91574d3d4fa6e41b65deec4df1"
 dependencies = [
  "adler2",
 ]
+
+[[package]]
+name = "mint"
+version = "0.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e53debba6bda7a793e5f99b8dacf19e626084f525f7829104ba9898f367d85ff"
 
 [[package]]
 name = "naga"
@@ -3331,7 +3400,7 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8b61bebd49e5d43f5f8cc7ee2891c16e0f41ec7954d36bcb6c14c5e0de867fb"
 dependencies = [
- "jni",
+ "jni 0.21.1",
  "ndk 0.8.0",
  "ndk-context",
  "num-derive",
@@ -3362,6 +3431,29 @@ name = "once_cell"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
+
+[[package]]
+name = "openxr"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a03958eb34719625119448d483ebd2fe008a2128b6286f2a7138b7e48072053"
+dependencies = [
+ "libc",
+ "libloading 0.8.5",
+ "ndk-context",
+ "openxr-sys",
+]
+
+[[package]]
+name = "openxr-sys"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1534b2c14b56564e58b91f5015817e1d87bd43ca12a188eda6a9ea3859b0ec25"
+dependencies = [
+ "cmake",
+ "libc",
+ "mint",
+]
 
 [[package]]
 name = "orbclient"

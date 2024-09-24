@@ -1,13 +1,16 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
+use bevy_mod_openxr::add_xr_plugins;
 use bevy_vr_controller::{
     animation::defaults::default_character_animations, player::PlayerSettings, VrControllerPlugin,
 };
+use bevy_xr_utils::xr_utils_actions::XRUtilsActionsPlugin;
 
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins,
+            add_xr_plugins(DefaultPlugins),
+            XRUtilsActionsPlugin,
             PhysicsDebugPlugin::default(),
             PhysicsPlugins::default(),
             VrControllerPlugin,
