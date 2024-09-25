@@ -21,6 +21,8 @@ bevy-tnua-avian3d = "0.1.1"
 bevy_vrm = "0.0.12"
 bevy_xr_utils = { git = "https://github.com/awtterpip/bevy_oxr" }
 paste = "1.0.15"
+bevy_mod_picking = "0.20.1"
+bevy_transform_gizmo = "0.12.0"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 web-sys = { version = "0.3.70", features = ["Navigator", "Window"] }

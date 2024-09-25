@@ -4,7 +4,7 @@ use crate::{
     player::{PlayerAvatar, PlayerBody},
     velocity::AverageVelocity,
 };
-
+use crate::ik::RunHumanoidIk;
 use super::{AnimationName, AvatarAnimationNodes};
 
 #[derive(Component, Clone, Default, Deref, DerefMut)]

@@ -1,6 +1,6 @@
 use bevy::{gltf::GltfNode, prelude::*, utils::HashMap};
 use bevy_vrm::{animations::vrm::VRM_ANIMATION_TARGETS, BoneName};
-
+use crate::ik::RunHumanoidIk;
 use super::{
     mixamo::{MIXAMO_ANIMATION_TARGETS, MIXAMO_BONE_NAMES},
     AnimationName,
@@ -25,6 +25,7 @@ pub(crate) fn load_animation_nodes(
     mut gltfs: ResMut<Assets<Gltf>>,
     mut graphs: ResMut<Assets<AnimationGraph>>,
     nodes: Res<Assets<GltfNode>>,
+    run_humanoid_ik: Res<RunHumanoidIk>,
 ) {
     for (entity, animations) in avatars.iter() {
         let mut graph = AnimationGraph::default();
@@ -55,6 +56,54 @@ pub(crate) fn load_animation_nodes(
                 // Head transform is set by user's camera.
                 if *name == BoneName::Head {
                     continue;
+                }
+
+                if run_humanoid_ik.0 {
+                    match name {
+                        BoneName::LeftShoulder |
+                        BoneName::RightShoulder |
+                        BoneName::LeftUpperArm |
+                        BoneName::RightUpperArm |
+                        BoneName::LeftLowerArm |
+                        BoneName::RightLowerArm |
+                        BoneName::LeftHand |
+                        BoneName::RightHand |
+                        BoneName::LeftThumbProximal |
+                        BoneName::LeftThumbIntermediate |
+                        BoneName::LeftThumbDistal |
+                        BoneName::LeftIndexProximal |
+                        BoneName::LeftIndexIntermediate |
+                        BoneName::LeftIndexDistal |
+                        BoneName::LeftMiddleProximal |
+                        BoneName::LeftMiddleIntermediate |
+                        BoneName::LeftMiddleDistal |
+                        BoneName::LeftRingProximal |
+                        BoneName::LeftRingIntermediate |
+                        BoneName::LeftRingDistal |
+                        BoneName::LeftLittleProximal |
+                        BoneName::LeftLittleIntermediate |
+                        BoneName::LeftLittleDistal |
+                        BoneName::RightThumbProximal |
+                        BoneName::RightThumbIntermediate |
+                        BoneName::RightThumbDistal |
+                        BoneName::RightIndexProximal |
+                        BoneName::RightIndexIntermediate |
+                        BoneName::RightIndexDistal |
+                        BoneName::RightMiddleProximal |
+                        BoneName::RightMiddleIntermediate |
+                        BoneName::RightMiddleDistal |
+                        BoneName::RightRingProximal |
+                        BoneName::RightRingIntermediate |
+                        BoneName::RightRingDistal |
+                        BoneName::RightLittleProximal |
+                        BoneName::RightLittleIntermediate |
+                        BoneName::RightLittleDistal => {
+                            continue;
+                        }
+                        _ => {
+
+                        }
+                    }
                 }
 
                 if let Some(mut curves) = clip_curves.remove(target) {
