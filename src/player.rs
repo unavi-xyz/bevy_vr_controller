@@ -1,5 +1,6 @@
 use avian3d::prelude::*;
 use bevy::{prelude::*, render::view::RenderLayers};
+use bevy_mod_xr::camera::XrCamera;
 use bevy_tnua::prelude::TnuaControllerBundle;
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use bevy_vrm::{
@@ -97,7 +98,7 @@ impl PlayerSettings {
                 },
                 CameraFreeLook(false),
                 PlayerCamera,
-                RenderLayers::layer(0).union(&RENDER_LAYERS[&FirstPersonFlag::FirstPersonOnly]),
+                render_layers(),
             ))
             .id();
 
@@ -115,6 +116,16 @@ pub struct SpawnedPlayer {
     pub avatar: Entity,
     pub body: Entity,
     pub camera: Entity,
+}
+
+pub fn set_xr_render_layers(mut commands: Commands, cameras: Query<Entity, Added<XrCamera>>) {
+    for camera in cameras.iter() {
+        commands.entity(camera).insert(render_layers());
+    }
+}
+
+fn render_layers() -> RenderLayers {
+    RenderLayers::layer(0).union(&RENDER_LAYERS[&FirstPersonFlag::FirstPersonOnly])
 }
 
 #[derive(Component)]

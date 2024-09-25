@@ -39,6 +39,7 @@ impl Plugin for VrControllerPlugin {
                 first_person::setup_first_person,
                 head::set_avatar_head,
                 look::grab_mouse,
+                player::set_xr_render_layers,
                 velocity::calc_average_velocity,
                 (
                     input::mouse::read_mouse_input,
