@@ -24,8 +24,8 @@ pub fn apply_camera_look(
     if let Some(view) = views.first() {
         let rotation = view.pose.orientation.to_quat();
 
-        let mut yaw = rotation.clone();
-        let mut pitch_roll = rotation.clone();
+        let mut yaw = rotation;
+        let mut pitch_roll = rotation;
 
         yaw.x = 0.0;
         yaw.z = 0.0;
