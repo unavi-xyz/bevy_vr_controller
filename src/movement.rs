@@ -4,8 +4,9 @@ use bevy_mod_openxr::{helper_traits::ToVec3, resources::OxrViews};
 use bevy_mod_xr::session::XrTrackingRoot;
 use bevy_tnua::prelude::*;
 
-use crate::player::{
-    PlayerBody, PlayerHeight, PlayerJumpHeight, PlayerSpawn, PlayerSpeed, VoidTeleport,
+use crate::{
+    eye_offset::EyeOffset,
+    player::{PlayerBody, PlayerHeight, PlayerJumpHeight, PlayerSpawn, PlayerSpeed, VoidTeleport},
 };
 
 #[derive(Component, Default)]
@@ -64,7 +65,8 @@ pub fn move_player(
 }
 
 pub fn move_xr_root(
-    player: Query<(&Transform, &PlayerHeight), (With<PlayerBody>, Without<XrTrackingRoot>)>,
+    player: Query<(&Transform, &Children), (With<PlayerBody>, Without<XrTrackingRoot>)>,
+    eye_offset: Query<&EyeOffset>,
     mut xr_root: Query<&mut Transform, (With<XrTrackingRoot>, Without<PlayerBody>)>,
     views: Res<OxrViews>,
 ) {
@@ -72,7 +74,7 @@ pub fn move_xr_root(
         return;
     };
 
-    let Ok((player_tr, player_height)) = player.get_single() else {
+    let Ok((player_tr, children)) = player.get_single() else {
         return;
     };
 
@@ -80,8 +82,12 @@ pub fn move_xr_root(
         return;
     };
 
+    let Some(offset) = children.iter().find_map(|c| eye_offset.get(*c).ok()) else {
+        return;
+    };
+
     root_tr.translation = player_tr.translation;
-    root_tr.translation.y += player_height.0 / 3.0;
+    root_tr.translation += offset.0;
     root_tr.translation -= view.pose.position.to_vec3();
 }
 
