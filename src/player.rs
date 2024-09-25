@@ -32,7 +32,7 @@ impl Default for PlayerSettings {
             height: 1.6,
             jump_height: 1.0,
             spawn: Vec3::default(),
-            speed: 6.0,
+            speed: 4.0,
             void_level: None,
             vrm: None,
             width: 0.4,
