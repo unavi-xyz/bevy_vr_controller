@@ -63,41 +63,26 @@ pub fn move_player(
     *last_time = time.elapsed_seconds();
 }
 
-pub fn apply_xr_pose(
-    mut players: Query<
-        (&mut Transform, &PlayerHeight),
-        (With<PlayerBody>, Without<XrTrackingRoot>),
-    >,
-    views: Res<OxrViews>,
-) {
-    let Some(view) = views.first() else {
-        return;
-    };
-
-    for (mut player_tr, player_height) in players.iter_mut() {
-        // player_tr.translation += view.pose.position.to_vec3();
-        // player_tr.translation.y -= player_height.0 / 2.0;
-    }
-}
-
 pub fn move_xr_root(
-    players: Query<(&Transform, &PlayerHeight), (With<PlayerBody>, Without<XrTrackingRoot>)>,
+    player: Query<(&Transform, &PlayerHeight), (With<PlayerBody>, Without<XrTrackingRoot>)>,
     mut xr_root: Query<&mut Transform, (With<XrTrackingRoot>, Without<PlayerBody>)>,
     views: Res<OxrViews>,
 ) {
-    let Some(view) = views.first() else {
-        return;
-    };
-
     let Ok(mut root_tr) = xr_root.get_single_mut() else {
         return;
     };
 
-    for (player_tr, player_height) in players.iter() {
-        root_tr.translation = player_tr.translation;
-        root_tr.translation.y -= player_height.0 / 2.0;
-        // root_tr.translation -= view.pose.position.to_vec3();
-    }
+    let Ok((player_tr, player_height)) = player.get_single() else {
+        return;
+    };
+
+    let Some(view) = views.first() else {
+        return;
+    };
+
+    root_tr.translation = player_tr.translation;
+    root_tr.translation.y += player_height.0 / 3.0;
+    root_tr.translation -= view.pose.position.to_vec3();
 }
 
 pub fn void_teleport(

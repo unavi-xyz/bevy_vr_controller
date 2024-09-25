@@ -51,7 +51,6 @@ impl Plugin for VrControllerPlugin {
                                 input::xr::read_xr_input,
                             ),
                             movement::void_teleport,
-                            movement::apply_xr_pose,
                             movement::move_player,
                             movement::move_xr_root,
                         ),
