@@ -1,10 +1,10 @@
-use bevy::{gltf::GltfNode, prelude::*, utils::HashMap};
-use bevy_vrm::{animations::vrm::VRM_ANIMATION_TARGETS, BoneName};
-use crate::ik::RunHumanoidIk;
 use super::{
     mixamo::{MIXAMO_ANIMATION_TARGETS, MIXAMO_BONE_NAMES},
     AnimationName,
 };
+use crate::ik::RunHumanoidIk;
+use bevy::{gltf::GltfNode, prelude::*, utils::HashMap};
+use bevy_vrm::{animations::vrm::VRM_ANIMATION_TARGETS, BoneName};
 
 #[derive(Component, Clone)]
 pub struct AvatarAnimationClips(pub HashMap<AnimationName, AvatarAnimation>);
@@ -60,49 +60,47 @@ pub(crate) fn load_animation_nodes(
 
                 if run_humanoid_ik.0 {
                     match name {
-                        BoneName::LeftShoulder |
-                        BoneName::RightShoulder |
-                        BoneName::LeftUpperArm |
-                        BoneName::RightUpperArm |
-                        BoneName::LeftLowerArm |
-                        BoneName::RightLowerArm |
-                        BoneName::LeftHand |
-                        BoneName::RightHand |
-                        BoneName::LeftThumbProximal |
-                        BoneName::LeftThumbIntermediate |
-                        BoneName::LeftThumbDistal |
-                        BoneName::LeftIndexProximal |
-                        BoneName::LeftIndexIntermediate |
-                        BoneName::LeftIndexDistal |
-                        BoneName::LeftMiddleProximal |
-                        BoneName::LeftMiddleIntermediate |
-                        BoneName::LeftMiddleDistal |
-                        BoneName::LeftRingProximal |
-                        BoneName::LeftRingIntermediate |
-                        BoneName::LeftRingDistal |
-                        BoneName::LeftLittleProximal |
-                        BoneName::LeftLittleIntermediate |
-                        BoneName::LeftLittleDistal |
-                        BoneName::RightThumbProximal |
-                        BoneName::RightThumbIntermediate |
-                        BoneName::RightThumbDistal |
-                        BoneName::RightIndexProximal |
-                        BoneName::RightIndexIntermediate |
-                        BoneName::RightIndexDistal |
-                        BoneName::RightMiddleProximal |
-                        BoneName::RightMiddleIntermediate |
-                        BoneName::RightMiddleDistal |
-                        BoneName::RightRingProximal |
-                        BoneName::RightRingIntermediate |
-                        BoneName::RightRingDistal |
-                        BoneName::RightLittleProximal |
-                        BoneName::RightLittleIntermediate |
-                        BoneName::RightLittleDistal => {
+                        BoneName::LeftShoulder
+                        | BoneName::RightShoulder
+                        | BoneName::LeftUpperArm
+                        | BoneName::RightUpperArm
+                        | BoneName::LeftLowerArm
+                        | BoneName::RightLowerArm
+                        | BoneName::LeftHand
+                        | BoneName::RightHand
+                        | BoneName::LeftThumbProximal
+                        | BoneName::LeftThumbIntermediate
+                        | BoneName::LeftThumbDistal
+                        | BoneName::LeftIndexProximal
+                        | BoneName::LeftIndexIntermediate
+                        | BoneName::LeftIndexDistal
+                        | BoneName::LeftMiddleProximal
+                        | BoneName::LeftMiddleIntermediate
+                        | BoneName::LeftMiddleDistal
+                        | BoneName::LeftRingProximal
+                        | BoneName::LeftRingIntermediate
+                        | BoneName::LeftRingDistal
+                        | BoneName::LeftLittleProximal
+                        | BoneName::LeftLittleIntermediate
+                        | BoneName::LeftLittleDistal
+                        | BoneName::RightThumbProximal
+                        | BoneName::RightThumbIntermediate
+                        | BoneName::RightThumbDistal
+                        | BoneName::RightIndexProximal
+                        | BoneName::RightIndexIntermediate
+                        | BoneName::RightIndexDistal
+                        | BoneName::RightMiddleProximal
+                        | BoneName::RightMiddleIntermediate
+                        | BoneName::RightMiddleDistal
+                        | BoneName::RightRingProximal
+                        | BoneName::RightRingIntermediate
+                        | BoneName::RightRingDistal
+                        | BoneName::RightLittleProximal
+                        | BoneName::RightLittleIntermediate
+                        | BoneName::RightLittleDistal => {
                             continue;
                         }
-                        _ => {
-
-                        }
+                        _ => {}
                     }
                 }
 

@@ -4,7 +4,9 @@ use bevy_mod_openxr::add_xr_plugins;
 use bevy_vr_controller::{
     animation::defaults::default_character_animations, player::PlayerSettings, VrControllerPlugin,
 };
-use bevy_xr_utils::{tracking_utils::TrackingUtilitiesPlugin, xr_utils_actions::XRUtilsActionsPlugin};
+use bevy_xr_utils::{
+    tracking_utils::TrackingUtilitiesPlugin, xr_utils_actions::XRUtilsActionsPlugin,
+};
 
 fn main() {
     App::new()
@@ -14,7 +16,6 @@ fn main() {
             PhysicsDebugPlugin::default(),
             PhysicsPlugins::default(),
             VrControllerPlugin,
-            TrackingUtilitiesPlugin,
         ))
         .add_systems(Startup, (setup_scene, setup_player))
         .run();

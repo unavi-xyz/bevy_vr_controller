@@ -1,4 +1,5 @@
 use crate::animation;
+use crate::animation::load::AvatarAnimationClips;
 use bevy::prelude::*;
 use bevy::transform::systems::propagate_transforms;
 use bevy_mod_picking::PickableBundle;
@@ -105,7 +106,7 @@ fn setup_ik_system(
     let left_target = commands
         .spawn((
             PbrBundle {
-                mesh: meshes.add(Mesh::from(Sphere::new(0.01))),
+                mesh: meshes.add(Mesh::from(Sphere::new(0.1))),
                 material: materials.add(StandardMaterial {
                     base_color: Color::rgb(0.8, 0.8, 0.8),
                     ..Default::default()
@@ -137,7 +138,7 @@ fn setup_ik_system(
     let right_target = commands
         .spawn((
             PbrBundle {
-                mesh: meshes.add(Mesh::from(Sphere::new(0.01))),
+                mesh: meshes.add(Mesh::from(Sphere::new(0.1))),
                 material: materials.add(StandardMaterial {
                     base_color: Color::rgb(0.8, 0.8, 0.8),
                     ..Default::default()
@@ -470,15 +471,21 @@ fn reset_rotations(
     }
 }
 
-#[derive(Resource, PartialOrd, PartialEq)]
+#[derive(Resource)]
 pub struct RunHumanoidIk(pub bool);
+
+impl PartialEq for RunHumanoidIk {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
 
 pub struct HumanoidIKPlugin;
 
 impl Plugin for HumanoidIKPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(RunHumanoidIk(true));
-        app.add_systems(Update, modify_ik_state);
+        //app.add_systems(Update, modify_ik_state);
         app.add_systems(Update, setup_ik_system).add_systems(
             Update,
             (
@@ -494,7 +501,13 @@ impl Plugin for HumanoidIKPlugin {
     }
 }
 
-pub fn modify_ik_state(status: Option<Res<XrState>>, mut run_humanoid_ik: ResMut<RunHumanoidIk>) {
+pub fn modify_ik_state(
+    status: Option<Res<XrState>>,
+    mut run_humanoid_ik: ResMut<RunHumanoidIk>,
+    mut commands: Commands,
+    avatars: Query<(Entity, &AvatarAnimationClips), With<Handle<AnimationGraph>>>,
+) {
+    let last = run_humanoid_ik.0;
     if let Some(status) = status {
         match status.as_ref() {
             XrState::Ready | XrState::Running => {
@@ -505,5 +518,10 @@ pub fn modify_ik_state(status: Option<Res<XrState>>, mut run_humanoid_ik: ResMut
             }
         }
     }
+    if run_humanoid_ik.0 != last {
+        println!("changed: {}", run_humanoid_ik.0);
+        for (e, _) in avatars.iter() {
+            commands.entity(e).remove::<Handle<AnimationGraph>>();
+        }
+    }
 }
-

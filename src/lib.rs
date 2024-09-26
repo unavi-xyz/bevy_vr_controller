@@ -5,6 +5,7 @@ use bevy_tnua::prelude::TnuaControllerPlugin;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
 use bevy_transform_gizmo::TransformGizmoPlugin;
 use bevy_vrm::VrmPlugins;
+use bevy_xr_utils::tracking_utils::TrackingUtilitiesPlugin;
 use bevy_xr_utils::xr_utils_actions::XRUtilsActionSystemSet;
 
 pub mod animation;
@@ -27,6 +28,7 @@ impl Plugin for VrControllerPlugin {
             TnuaControllerPlugin::default(),
             VrmPlugins,
             HumanoidIKPlugin,
+            TrackingUtilitiesPlugin,
         ))
         .init_resource::<input::keyboard::InputMap>()
         .add_event::<input::mouse::CameraLookEvent>()
