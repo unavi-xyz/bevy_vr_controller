@@ -1,11 +1,11 @@
+use crate::animation;
 use bevy::prelude::*;
 use bevy::transform::systems::propagate_transforms;
 use bevy_mod_picking::PickableBundle;
-use bevy_mod_xr::session::XrState;
+use bevy_mod_xr::session::{XrState, XrTrackingRoot};
 use bevy_transform_gizmo::GizmoTransformable;
 use bevy_vrm::BoneName;
 use bevy_xr_utils::tracking_utils::{XrTrackedLeftGrip, XrTrackedRightGrip};
-use crate::animation;
 
 #[derive(Component)]
 struct HumanoidIK {
@@ -40,13 +40,13 @@ fn setup_ik_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     globals: Query<&GlobalTransform>,
+    tracking_root: Query<Entity, With<XrTrackingRoot>>,
 ) {
     if *has_run {
         return;
     }
 
     let mut hip = None;
-
 
     let mut left_shoulder = None;
     let mut left_upper_arm = None;
@@ -64,12 +64,9 @@ fn setup_ik_system(
         };
     }
 
-    let (Some(shoulder), Some(upper), Some(lower), Some(hand)) = (
-        left_shoulder,
-        left_upper_arm,
-        left_lower_arm,
-        left_hand,
-    ) else {
+    let (Some(shoulder), Some(upper), Some(lower), Some(hand)) =
+        (left_shoulder, left_upper_arm, left_lower_arm, left_hand)
+    else {
         return;
     };
 
@@ -90,12 +87,9 @@ fn setup_ik_system(
         };
     }
 
-    let (Some(shoulder), Some(upper), Some(lower), Some(hand)) = (
-        right_shoulder,
-        right_upper_arm,
-        right_lower_arm,
-        right_hand,
-    ) else {
+    let (Some(shoulder), Some(upper), Some(lower), Some(hand)) =
+        (right_shoulder, right_upper_arm, right_lower_arm, right_hand)
+    else {
         return;
     };
 
@@ -109,15 +103,18 @@ fn setup_ik_system(
     left_lengths.push(0.1);
 
     let left_target = commands
-        .spawn((PbrBundle {
-            mesh: meshes.add(Mesh::from(Sphere::new(0.01))),
-            material: materials.add(StandardMaterial {
-                base_color: Color::rgb(0.8, 0.8, 0.8),
+        .spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(Sphere::new(0.01))),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::rgb(0.8, 0.8, 0.8),
+                    ..Default::default()
+                }),
+                transform: Transform::from_xyz(0.0, 0.0, 0.0),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            ..Default::default()
-        }, XrTrackedLeftGrip))
+            },
+            XrTrackedLeftGrip,
+        ))
         .id();
 
     // Define a pole vector pointing downward
@@ -138,15 +135,18 @@ fn setup_ik_system(
     right_lengths.push(0.1);
 
     let right_target = commands
-        .spawn((PbrBundle {
-            mesh: meshes.add(Mesh::from(Sphere::new(0.01))),
-            material: materials.add(StandardMaterial {
-                base_color: Color::rgb(0.8, 0.8, 0.8),
+        .spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(Sphere::new(0.01))),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::rgb(0.8, 0.8, 0.8),
+                    ..Default::default()
+                }),
+                transform: Transform::from_xyz(0.0, 0.0, 0.0),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            ..Default::default()
-        }, XrTrackedRightGrip))
+            },
+            XrTrackedRightGrip,
+        ))
         .id();
 
     // Define a pole vector pointing downward
@@ -177,6 +177,11 @@ fn setup_ik_system(
             pole_vector_right,
         },
     ));
+    if let Ok(root) = tracking_root.get_single() {
+        commands
+            .entity(root)
+            .push_children(&[left_target, right_target]);
+    }
 
     *has_run = true;
 }
@@ -215,13 +220,17 @@ fn humanoid_ik_system(
     parents: Query<&Parent>,
 ) {
     for (ik, chain) in query.iter() {
-
         {
             let mut positions = Vec::new();
             let mut total_length = 0.0;
 
             // Get initial positions and calculate total length
-            for (&joint, &length) in chain.right_chain.joints.iter().zip(chain.right_chain.lengths.iter()) {
+            for (&joint, &length) in chain
+                .right_chain
+                .joints
+                .iter()
+                .zip(chain.right_chain.lengths.iter())
+            {
                 if let Ok(transform) = globals.get(joint) {
                     positions.push(transform.translation());
                     total_length += length;
@@ -243,7 +252,8 @@ fn humanoid_ik_system(
                 let direction = to_target.normalize();
                 for (i, pos) in desired_positions.iter_mut().enumerate() {
                     if i > 0 {
-                        *pos = base + direction * chain.right_chain.lengths.iter().take(i).sum::<f32>();
+                        *pos = base
+                            + direction * chain.right_chain.lengths.iter().take(i).sum::<f32>();
                     }
                 }
             } else {
@@ -254,12 +264,18 @@ fn humanoid_ik_system(
                     desired_positions[len - 1] = right_target;
                     for i in (1..len).rev() {
                         let dir = (desired_positions[i - 1] - desired_positions[i]).normalize();
-                        desired_positions[i - 1] = desired_positions[i] + dir * chain.right_chain.lengths[i - 1];
+                        desired_positions[i - 1] =
+                            desired_positions[i] + dir * chain.right_chain.lengths[i - 1];
                     }
 
                     let weight = 1.0;
 
-                    apply_pole_vector_constraint(&mut desired_positions, ik.pole_vector_right, &chain.right_chain, weight);
+                    apply_pole_vector_constraint(
+                        &mut desired_positions,
+                        ik.pole_vector_right,
+                        &chain.right_chain,
+                        weight,
+                    );
 
                     // Apply pole vector constraint after forward pass
 
@@ -267,10 +283,16 @@ fn humanoid_ik_system(
                     desired_positions[0] = base;
                     for i in 1..len {
                         let dir = (desired_positions[i] - desired_positions[i - 1]).normalize();
-                        desired_positions[i] = desired_positions[i - 1] + dir * chain.right_chain.lengths[i - 1];
+                        desired_positions[i] =
+                            desired_positions[i - 1] + dir * chain.right_chain.lengths[i - 1];
                     }
 
-                    apply_pole_vector_constraint(&mut desired_positions, ik.pole_vector_right, &chain.right_chain, weight);
+                    apply_pole_vector_constraint(
+                        &mut desired_positions,
+                        ik.pole_vector_right,
+                        &chain.right_chain,
+                        weight,
+                    );
 
                     // Apply pole vector constraint after backward pass
                 }
@@ -282,7 +304,8 @@ fn humanoid_ik_system(
                 if let Ok(mut transform) = transforms.get_mut(joint) {
                     let current_global_transform = globals.get(joint).unwrap();
                     let current_position = current_global_transform.translation();
-                    let current_rotation = current_global_transform.to_scale_rotation_translation().1;
+                    let current_rotation =
+                        current_global_transform.to_scale_rotation_translation().1;
 
                     let desired_dir = (desired_positions[i + 1] - desired_positions[i]).normalize();
                     let current_dir = (positions[i + 1] - positions[i]).normalize();
@@ -314,7 +337,12 @@ fn humanoid_ik_system(
             let mut total_length = 0.0;
 
             // Get initial positions and calculate total length
-            for (&joint, &length) in chain.left_chain.joints.iter().zip(chain.left_chain.lengths.iter()) {
+            for (&joint, &length) in chain
+                .left_chain
+                .joints
+                .iter()
+                .zip(chain.left_chain.lengths.iter())
+            {
                 if let Ok(transform) = globals.get(joint) {
                     positions.push(transform.translation());
                     total_length += length;
@@ -336,7 +364,8 @@ fn humanoid_ik_system(
                 let direction = to_target.normalize();
                 for (i, pos) in desired_positions.iter_mut().enumerate() {
                     if i > 0 {
-                        *pos = base + direction * chain.left_chain.lengths.iter().take(i).sum::<f32>();
+                        *pos =
+                            base + direction * chain.left_chain.lengths.iter().take(i).sum::<f32>();
                     }
                 }
             } else {
@@ -347,12 +376,18 @@ fn humanoid_ik_system(
                     desired_positions[len - 1] = left_target;
                     for i in (1..len).rev() {
                         let dir = (desired_positions[i - 1] - desired_positions[i]).normalize();
-                        desired_positions[i - 1] = desired_positions[i] + dir * chain.left_chain.lengths[i - 1];
+                        desired_positions[i - 1] =
+                            desired_positions[i] + dir * chain.left_chain.lengths[i - 1];
                     }
 
                     let weight = 1.0;
 
-                    apply_pole_vector_constraint(&mut desired_positions, ik.pole_vector_right, &chain.left_chain, weight);
+                    apply_pole_vector_constraint(
+                        &mut desired_positions,
+                        ik.pole_vector_right,
+                        &chain.left_chain,
+                        weight,
+                    );
 
                     // Apply pole vector constraint after forward pass
 
@@ -360,10 +395,16 @@ fn humanoid_ik_system(
                     desired_positions[0] = base;
                     for i in 1..len {
                         let dir = (desired_positions[i] - desired_positions[i - 1]).normalize();
-                        desired_positions[i] = desired_positions[i - 1] + dir * chain.left_chain.lengths[i - 1];
+                        desired_positions[i] =
+                            desired_positions[i - 1] + dir * chain.left_chain.lengths[i - 1];
                     }
 
-                    apply_pole_vector_constraint(&mut desired_positions, ik.pole_vector_left, &chain.left_chain, weight);
+                    apply_pole_vector_constraint(
+                        &mut desired_positions,
+                        ik.pole_vector_left,
+                        &chain.left_chain,
+                        weight,
+                    );
 
                     // Apply pole vector constraint after backward pass
                 }
@@ -375,7 +416,8 @@ fn humanoid_ik_system(
                 if let Ok(mut transform) = transforms.get_mut(joint) {
                     let current_global_transform = globals.get(joint).unwrap();
                     let current_position = current_global_transform.translation();
-                    let current_rotation = current_global_transform.to_scale_rotation_translation().1;
+                    let current_rotation =
+                        current_global_transform.to_scale_rotation_translation().1;
 
                     let desired_dir = (desired_positions[i + 1] - desired_positions[i]).normalize();
                     let current_dir = (positions[i + 1] - positions[i]).normalize();
@@ -439,7 +481,14 @@ impl Plugin for HumanoidIKPlugin {
         app.add_systems(Update, modify_ik_state);
         app.add_systems(Update, setup_ik_system).add_systems(
             Update,
-            (propagate_transforms, reset_rotations, propagate_transforms, humanoid_ik_system).chain().after(animation::weights::play_avatar_animations)
+            (
+                propagate_transforms,
+                reset_rotations,
+                propagate_transforms,
+                humanoid_ik_system,
+            )
+                .chain()
+                .after(animation::weights::play_avatar_animations)
                 .run_if(resource_equals::<RunHumanoidIk>(RunHumanoidIk(true))),
         );
     }
@@ -457,3 +506,4 @@ pub fn modify_ik_state(status: Option<Res<XrState>>, mut run_humanoid_ik: ResMut
         }
     }
 }
+
