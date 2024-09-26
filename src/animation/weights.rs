@@ -1,11 +1,11 @@
 use bevy::{animation::ActiveAnimation, prelude::*, utils::HashMap};
 
+use super::{AnimationName, AvatarAnimationNodes};
+use crate::ik::RunHumanoidIk;
 use crate::{
     player::{PlayerAvatar, PlayerBody},
     velocity::AverageVelocity,
 };
-
-use super::{AnimationName, AvatarAnimationNodes};
 
 #[derive(Component, Clone, Default, Deref, DerefMut)]
 pub struct AnimationWeights(pub HashMap<AnimationName, f32>);

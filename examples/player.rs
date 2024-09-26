@@ -3,6 +3,9 @@ use bevy::prelude::*;
 use bevy_vr_controller::{
     animation::defaults::default_character_animations, player::PlayerSettings, VrControllerPlugin,
 };
+use bevy_xr_utils::{
+    tracking_utils::TrackingUtilitiesPlugin, xr_utils_actions::XRUtilsActionsPlugin,
+};
 
 fn main() {
     let mut app = App::new();
