@@ -271,12 +271,12 @@ fn humanoid_ik_system(
 
                     let weight = 1.0;
 
-                    apply_pole_vector_constraint(
+                   /* apply_pole_vector_constraint(
                         &mut desired_positions,
                         ik.pole_vector_right,
                         &chain.right_chain,
                         weight,
-                    );
+                    );*/
 
                     // Apply pole vector constraint after forward pass
 
@@ -288,12 +288,12 @@ fn humanoid_ik_system(
                             desired_positions[i - 1] + dir * chain.right_chain.lengths[i - 1];
                     }
 
-                    apply_pole_vector_constraint(
+                   /* apply_pole_vector_constraint(
                         &mut desired_positions,
                         ik.pole_vector_right,
                         &chain.right_chain,
                         weight,
-                    );
+                    );*/
 
                     // Apply pole vector constraint after backward pass
                 }
@@ -383,12 +383,12 @@ fn humanoid_ik_system(
 
                     let weight = 1.0;
 
-                    apply_pole_vector_constraint(
+                    /*apply_pole_vector_constraint(
                         &mut desired_positions,
                         ik.pole_vector_right,
                         &chain.left_chain,
                         weight,
-                    );
+                    );*/
 
                     // Apply pole vector constraint after forward pass
 
@@ -400,12 +400,12 @@ fn humanoid_ik_system(
                             desired_positions[i - 1] + dir * chain.left_chain.lengths[i - 1];
                     }
 
-                    apply_pole_vector_constraint(
+                    /*apply_pole_vector_constraint(
                         &mut desired_positions,
                         ik.pole_vector_left,
                         &chain.left_chain,
                         weight,
-                    );
+                    );*/
 
                     // Apply pole vector constraint after backward pass
                 }
