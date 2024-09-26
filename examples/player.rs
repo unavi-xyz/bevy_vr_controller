@@ -1,22 +1,30 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy_mod_openxr::add_xr_plugins;
 use bevy_vr_controller::{
     animation::defaults::default_character_animations, player::PlayerSettings, VrControllerPlugin,
 };
-use bevy_xr_utils::xr_utils_actions::XRUtilsActionsPlugin;
 
 fn main() {
-    App::new()
-        .add_plugins((
-            add_xr_plugins(DefaultPlugins),
-            XRUtilsActionsPlugin,
-            PhysicsDebugPlugin::default(),
-            PhysicsPlugins::default(),
-            VrControllerPlugin,
-        ))
-        .add_systems(Startup, (setup_scene, setup_player))
-        .run();
+    let mut app = App::new();
+
+    #[cfg(not(feature = "xr"))]
+    app.add_plugins(DefaultPlugins);
+
+    #[cfg(feature = "xr")]
+    {
+        app.add_plugins((
+            bevy_mod_openxr::add_xr_plugins(DefaultPlugins),
+            bevy_xr_utils::xr_utils_actions::XRUtilsActionsPlugin,
+        ));
+    }
+
+    app.add_plugins((
+        PhysicsDebugPlugin::default(),
+        PhysicsPlugins::default(),
+        VrControllerPlugin,
+    ))
+    .add_systems(Startup, (setup_scene, setup_player))
+    .run();
 }
 
 const GROUND_SIZE: f32 = 15.0;

@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_mod_openxr::resources::OxrViews;
 
 use crate::movement::PlayerInputState;
 
@@ -28,8 +27,12 @@ pub fn read_keyboard_input(
     input_map: Res<InputMap>,
     keys: Res<ButtonInput<KeyCode>>,
     mut player_state: Query<&mut PlayerInputState>,
-    views: Res<OxrViews>,
+    #[cfg(feature = "xr")]
+    #[cfg(not(target_family = "wasm"))]
+    views: Res<bevy_mod_openxr::resources::OxrViews>,
 ) {
+    #[cfg(feature = "xr")]
+    #[cfg(not(target_family = "wasm"))]
     if !views.is_empty() {
         return;
     }

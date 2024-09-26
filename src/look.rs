@@ -1,5 +1,4 @@
 use bevy::{prelude::*, window::CursorGrabMode, window::Window};
-use bevy_mod_openxr::{helper_traits::ToQuat, resources::OxrViews};
 
 use crate::{
     input::mouse::CameraLookEvent,
@@ -19,9 +18,15 @@ pub fn apply_camera_look(
     mut target_pitch_roll: Local<Quat>,
     mut target_yaw: Local<Quat>,
     time: Res<Time>,
-    views: Res<OxrViews>,
+    #[cfg(feature = "xr")]
+    #[cfg(not(target_family = "wasm"))]
+    views: Res<bevy_mod_openxr::resources::OxrViews>,
 ) {
+    #[cfg(feature = "xr")]
+    #[cfg(not(target_family = "wasm"))]
     if let Some(view) = views.first() {
+        use bevy_mod_openxr::helper_traits::ToQuat;
+
         let rotation = view.pose.orientation.to_quat();
 
         let mut yaw = rotation;
@@ -33,11 +38,13 @@ pub fn apply_camera_look(
 
         pitch_roll.y = 0.0;
         *target_pitch_roll = pitch_roll.normalize();
-    } else {
-        for look in look_events.read() {
-            *target_yaw = Quat::from_rotation_y(look.x);
-            *target_pitch_roll = Quat::from_rotation_x(look.y);
-        }
+
+        look_events.clear()
+    }
+
+    for look in look_events.read() {
+        *target_yaw = Quat::from_rotation_y(look.x);
+        *target_pitch_roll = Quat::from_rotation_x(look.y);
     }
 
     let lerp_factor = time.delta_seconds() * CAM_LERP_FACTOR;

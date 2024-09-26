@@ -1,6 +1,5 @@
 use avian3d::prelude::*;
 use bevy::{prelude::*, render::view::RenderLayers};
-use bevy_mod_xr::camera::XrCamera;
 use bevy_tnua::prelude::TnuaControllerBundle;
 use bevy_tnua_avian3d::TnuaAvian3dSensorShape;
 use bevy_vrm::{
@@ -118,7 +117,11 @@ pub struct SpawnedPlayer {
     pub camera: Entity,
 }
 
-pub fn set_xr_render_layers(mut commands: Commands, cameras: Query<Entity, Added<XrCamera>>) {
+#[cfg(feature = "xr")]
+pub fn set_xr_render_layers(
+    mut commands: Commands,
+    cameras: Query<Entity, Added<bevy_mod_xr::camera::XrCamera>>,
+) {
     for camera in cameras.iter() {
         commands.entity(camera).insert(render_layers());
     }
