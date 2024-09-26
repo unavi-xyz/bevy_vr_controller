@@ -1,28 +1,25 @@
-use crate::animation;
-use crate::animation::load::AvatarAnimationClips;
 use bevy::prelude::*;
-use bevy::transform::systems::propagate_transforms;
-use bevy_mod_picking::PickableBundle;
 use bevy_mod_xr::session::{XrState, XrTrackingRoot};
-use bevy_transform_gizmo::GizmoTransformable;
 use bevy_vrm::BoneName;
 use bevy_xr_utils::tracking_utils::{XrTrackedLeftGrip, XrTrackedRightGrip};
 
+use crate::animation::load::AvatarAnimationClips;
+
+use super::RunHumanoidIk;
+
 #[derive(Component)]
-struct HumanoidIK {
+pub struct HumanoidIK {
     left_target: Entity,
     right_target: Entity,
-    pole_vector_left: Vec3,
-    pole_vector_right: Vec3,
 }
 
-struct IKChain {
+pub struct IKChain {
     joints: Vec<Entity>,
     lengths: Vec<f32>,
 }
 
 #[derive(Component)]
-struct HumanoidIkChain {
+pub struct HumanoidIkChain {
     left_chain: IKChain,
     right_chain: IKChain,
 }
@@ -33,7 +30,7 @@ pub struct RestPose {
     local: Quat,
 }
 
-fn setup_ik_system(
+pub fn setup_ik_system(
     mut commands: Commands,
     bones: Query<(Entity, &BoneName)>,
     transforms: Query<&Transform>,
@@ -108,7 +105,7 @@ fn setup_ik_system(
             PbrBundle {
                 mesh: meshes.add(Mesh::from(Sphere::new(0.1))),
                 material: materials.add(StandardMaterial {
-                    base_color: Color::rgb(0.8, 0.8, 0.8),
+                    base_color: Color::srgb(0.8, 0.8, 0.8),
                     ..Default::default()
                 }),
                 transform: Transform::from_xyz(0.0, 0.0, 0.0),
@@ -117,9 +114,6 @@ fn setup_ik_system(
             XrTrackedLeftGrip,
         ))
         .id();
-
-    // Define a pole vector pointing downward
-    let pole_vector_left = Vec3::new(0.0, -1.0, 0.0);
 
     for j in left_joints.iter() {
         commands.entity(*j).insert(RestPose {
@@ -140,7 +134,7 @@ fn setup_ik_system(
             PbrBundle {
                 mesh: meshes.add(Mesh::from(Sphere::new(0.1))),
                 material: materials.add(StandardMaterial {
-                    base_color: Color::rgb(0.8, 0.8, 0.8),
+                    base_color: Color::srgb(0.8, 0.8, 0.8),
                     ..Default::default()
                 }),
                 transform: Transform::from_xyz(0.0, 0.0, 0.0),
@@ -149,9 +143,6 @@ fn setup_ik_system(
             XrTrackedRightGrip,
         ))
         .id();
-
-    // Define a pole vector pointing downward
-    let pole_vector_right = Vec3::new(0.0, -1.0, 0.0);
 
     for j in right_joints.iter() {
         commands.entity(*j).insert(RestPose {
@@ -174,8 +165,6 @@ fn setup_ik_system(
         HumanoidIK {
             left_target,
             right_target,
-            pole_vector_left,
-            pole_vector_right,
         },
     ));
     if let Ok(root) = tracking_root.get_single() {
@@ -186,36 +175,9 @@ fn setup_ik_system(
 
     *has_run = true;
 }
-fn apply_pole_vector_constraint(
-    desired_positions: &mut Vec<Vec3>,
-    pole_vector: Vec3,
-    chain: &IKChain,
-    weight: f32,
-) {
-    let shoulder_pos = desired_positions[1];
-    let elbow_pos = desired_positions[2];
-    let hand_pos = desired_positions[3];
 
-    // Direction vectors
-    let shoulder_to_elbow = elbow_pos - shoulder_pos;
-    let shoulder_to_hand = hand_pos - shoulder_pos;
-
-    // Plane normal defined by the pole vector
-    let plane_normal = shoulder_to_hand.cross(pole_vector).normalize();
-
-    // Project the elbow onto the plane
-    let projected_elbow =
-        shoulder_pos + (shoulder_to_elbow - plane_normal * shoulder_to_elbow.dot(plane_normal));
-
-    // Blend between the current elbow position and the projected position
-    let new_elbow_pos = elbow_pos.lerp(projected_elbow, weight);
-
-    // Update the elbow position
-    desired_positions[1] =
-        shoulder_pos + (new_elbow_pos - shoulder_pos).normalize() * chain.lengths[1];
-}
-fn humanoid_ik_system(
-    mut query: Query<(&HumanoidIK, &HumanoidIkChain)>,
+pub fn humanoid_ik_system(
+    query: Query<(&HumanoidIK, &HumanoidIkChain)>,
     mut transforms: Query<&mut Transform>,
     mut globals: Query<&mut GlobalTransform>,
     parents: Query<&Parent>,
@@ -260,7 +222,7 @@ fn humanoid_ik_system(
             } else {
                 // FABRIK algorithm with pole vector as a soft constraint
                 let iterations = 30;
-                for i in 0..iterations {
+                for _ in 0..iterations {
                     // Forward pass
                     desired_positions[len - 1] = right_target;
                     for i in (1..len).rev() {
@@ -269,16 +231,7 @@ fn humanoid_ik_system(
                             desired_positions[i] + dir * chain.right_chain.lengths[i - 1];
                     }
 
-                    let weight = 1.0;
-
-                   /* apply_pole_vector_constraint(
-                        &mut desired_positions,
-                        ik.pole_vector_right,
-                        &chain.right_chain,
-                        weight,
-                    );*/
-
-                    // Apply pole vector constraint after forward pass
+                    // TODO Apply pole vector constraint after forward pass
 
                     // Backward pass
                     desired_positions[0] = base;
@@ -288,14 +241,7 @@ fn humanoid_ik_system(
                             desired_positions[i - 1] + dir * chain.right_chain.lengths[i - 1];
                     }
 
-                   /* apply_pole_vector_constraint(
-                        &mut desired_positions,
-                        ik.pole_vector_right,
-                        &chain.right_chain,
-                        weight,
-                    );*/
-
-                    // Apply pole vector constraint after backward pass
+                    // TODO Apply pole vector constraint after backward pass
                 }
             }
 
@@ -304,7 +250,6 @@ fn humanoid_ik_system(
                 let joint = chain.right_chain.joints[i];
                 if let Ok(mut transform) = transforms.get_mut(joint) {
                     let current_global_transform = globals.get(joint).unwrap();
-                    let current_position = current_global_transform.translation();
                     let current_rotation =
                         current_global_transform.to_scale_rotation_translation().1;
 
@@ -372,7 +317,7 @@ fn humanoid_ik_system(
             } else {
                 // FABRIK algorithm with pole vector as a soft constraint
                 let iterations = 30;
-                for i in 0..iterations {
+                for _ in 0..iterations {
                     // Forward pass
                     desired_positions[len - 1] = left_target;
                     for i in (1..len).rev() {
@@ -381,16 +326,7 @@ fn humanoid_ik_system(
                             desired_positions[i] + dir * chain.left_chain.lengths[i - 1];
                     }
 
-                    let weight = 1.0;
-
-                    /*apply_pole_vector_constraint(
-                        &mut desired_positions,
-                        ik.pole_vector_right,
-                        &chain.left_chain,
-                        weight,
-                    );*/
-
-                    // Apply pole vector constraint after forward pass
+                    // TODO Apply pole vector constraint after forward pass
 
                     // Backward pass
                     desired_positions[0] = base;
@@ -400,14 +336,7 @@ fn humanoid_ik_system(
                             desired_positions[i - 1] + dir * chain.left_chain.lengths[i - 1];
                     }
 
-                    /*apply_pole_vector_constraint(
-                        &mut desired_positions,
-                        ik.pole_vector_left,
-                        &chain.left_chain,
-                        weight,
-                    );*/
-
-                    // Apply pole vector constraint after backward pass
+                    // TODO Apply pole vector constraint after backward pass
                 }
             }
 
@@ -416,7 +345,6 @@ fn humanoid_ik_system(
                 let joint = chain.left_chain.joints[i];
                 if let Ok(mut transform) = transforms.get_mut(joint) {
                     let current_global_transform = globals.get(joint).unwrap();
-                    let current_position = current_global_transform.translation();
                     let current_rotation =
                         current_global_transform.to_scale_rotation_translation().1;
 
@@ -447,8 +375,8 @@ fn humanoid_ik_system(
     }
 }
 
-fn reset_rotations(
-    mut query: Query<(&HumanoidIK, &HumanoidIkChain)>,
+pub fn reset_rotations(
+    query: Query<(&HumanoidIK, &HumanoidIkChain)>,
     mut transforms: Query<&mut Transform>,
     mut globals: Query<&mut GlobalTransform>,
     rests: Query<&RestPose>,
@@ -471,41 +399,11 @@ fn reset_rotations(
     }
 }
 
-#[derive(Resource)]
-pub struct RunHumanoidIk(pub bool);
-
-impl PartialEq for RunHumanoidIk {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-}
-
-pub struct HumanoidIKPlugin;
-
-impl Plugin for HumanoidIKPlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(RunHumanoidIk(true));
-        //app.add_systems(Update, modify_ik_state);
-        app.add_systems(Update, setup_ik_system).add_systems(
-            Update,
-            (
-                propagate_transforms,
-                reset_rotations,
-                propagate_transforms,
-                humanoid_ik_system,
-            )
-                .chain()
-                .after(animation::weights::play_avatar_animations)
-                .run_if(resource_equals::<RunHumanoidIk>(RunHumanoidIk(true))),
-        );
-    }
-}
-
 pub fn modify_ik_state(
-    status: Option<Res<XrState>>,
-    mut run_humanoid_ik: ResMut<RunHumanoidIk>,
-    mut commands: Commands,
     avatars: Query<(Entity, &AvatarAnimationClips), With<Handle<AnimationGraph>>>,
+    mut commands: Commands,
+    mut run_humanoid_ik: ResMut<RunHumanoidIk>,
+    status: Option<Res<XrState>>,
 ) {
     let last = run_humanoid_ik.0;
     if let Some(status) = status {
@@ -519,7 +417,7 @@ pub fn modify_ik_state(
         }
     }
     if run_humanoid_ik.0 != last {
-        println!("changed: {}", run_humanoid_ik.0);
+        debug!("run humanoid ik: {}", run_humanoid_ik.0);
         for (e, _) in avatars.iter() {
             commands.entity(e).remove::<Handle<AnimationGraph>>();
         }

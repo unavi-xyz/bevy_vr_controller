@@ -1,7 +1,6 @@
 use bevy::{animation::ActiveAnimation, prelude::*, utils::HashMap};
 
 use super::{AnimationName, AvatarAnimationNodes};
-use crate::ik::RunHumanoidIk;
 use crate::{
     player::{PlayerAvatar, PlayerBody},
     velocity::AverageVelocity,

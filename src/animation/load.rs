@@ -1,10 +1,10 @@
+use bevy::{gltf::GltfNode, prelude::*, utils::HashMap};
+use bevy_vrm::{animations::vrm::VRM_ANIMATION_TARGETS, BoneName};
+
 use super::{
     mixamo::{MIXAMO_ANIMATION_TARGETS, MIXAMO_BONE_NAMES},
     AnimationName,
 };
-use crate::ik::RunHumanoidIk;
-use bevy::{gltf::GltfNode, prelude::*, utils::HashMap};
-use bevy_vrm::{animations::vrm::VRM_ANIMATION_TARGETS, BoneName};
 
 #[derive(Component, Clone)]
 pub struct AvatarAnimationClips(pub HashMap<AnimationName, AvatarAnimation>);
@@ -25,7 +25,7 @@ pub(crate) fn load_animation_nodes(
     mut gltfs: ResMut<Assets<Gltf>>,
     mut graphs: ResMut<Assets<AnimationGraph>>,
     nodes: Res<Assets<GltfNode>>,
-    run_humanoid_ik: Res<RunHumanoidIk>,
+    #[cfg(feature = "xr")] run_humanoid_ik: Res<crate::ik::RunHumanoidIk>,
 ) {
     for (entity, animations) in avatars.iter() {
         let mut graph = AnimationGraph::default();
@@ -58,6 +58,7 @@ pub(crate) fn load_animation_nodes(
                     continue;
                 }
 
+                #[cfg(feature = "xr")]
                 if run_humanoid_ik.0 {
                     match name {
                         BoneName::LeftShoulder

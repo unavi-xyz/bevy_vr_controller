@@ -1,17 +1,13 @@
-use crate::ik::HumanoidIKPlugin;
 use bevy::{asset::embedded_asset, prelude::*};
-use bevy_mod_picking::DefaultPickingPlugins;
 use bevy_tnua::prelude::TnuaControllerPlugin;
 use bevy_tnua_avian3d::TnuaAvian3dPlugin;
-use bevy_transform_gizmo::TransformGizmoPlugin;
 use bevy_vrm::VrmPlugins;
-use bevy_xr_utils::tracking_utils::TrackingUtilitiesPlugin;
-use bevy_xr_utils::xr_utils_actions::XRUtilsActionSystemSet;
 
 pub mod animation;
 mod eye_offset;
 mod first_person;
 mod head;
+#[cfg(feature = "xr")]
 mod ik;
 pub mod input;
 mod look;
@@ -23,12 +19,16 @@ pub struct VrControllerPlugin;
 
 impl Plugin for VrControllerPlugin {
     fn build(&self, app: &mut App) {
+        #[cfg(feature = "xr")]
+        app.add_plugins((
+            bevy_xr_utils::tracking_utils::TrackingUtilitiesPlugin,
+            ik::HumanoidIKPlugin,
+        ));
+
         app.add_plugins((
             TnuaAvian3dPlugin::default(),
             TnuaControllerPlugin::default(),
             VrmPlugins,
-            HumanoidIKPlugin,
-            TrackingUtilitiesPlugin,
         ))
         .init_resource::<input::keyboard::InputMap>()
         .add_event::<input::mouse::CameraLookEvent>()
