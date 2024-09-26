@@ -59,6 +59,7 @@ impl Plugin for VrControllerPlugin {
                             movement::void_teleport,
                             movement::move_player,
                             #[cfg(feature = "xr")]
+                            #[cfg(not(target_family = "wasm"))]
                             movement::move_xr_root_oxr,
                         ),
                     )

@@ -28,7 +28,12 @@
           overlays = [ (import rust-overlay) ];
         };
 
-        rustToolchain = pkgs.pkgsBuildHost.rust-bin.stable.latest.default;
+        rustToolchain = pkgs.pkgsBuildHost.rust-bin.stable.latest.default.override {
+          targets = [
+            "wasm32-unknown-unknown"
+          ];
+        };
+
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
 
         commonArgs = {
