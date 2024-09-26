@@ -1,7 +1,6 @@
 use std::f32::consts::FRAC_PI_2;
 
 use bevy::{input::mouse::MouseMotion, prelude::*, window::CursorGrabMode};
-use bevy_mod_openxr::resources::OxrViews;
 
 #[derive(Resource, Event, Debug, Default, Deref, DerefMut)]
 pub struct CameraLookEvent(pub Vec2);
@@ -15,8 +14,12 @@ pub fn read_mouse_input(
     mut look_xy: Local<Vec2>,
     mut mouse_motion_events: EventReader<MouseMotion>,
     windows: Query<&Window>,
-    views: Res<OxrViews>,
+    #[cfg(feature = "xr")]
+    #[cfg(not(target_family = "wasm"))]
+    views: Res<bevy_mod_openxr::resources::OxrViews>,
 ) {
+    #[cfg(feature = "xr")]
+    #[cfg(not(target_family = "wasm"))]
     if !views.is_empty() {
         return;
     }

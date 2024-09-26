@@ -33,10 +33,6 @@ impl Plugin for VrControllerPlugin {
         .init_resource::<input::keyboard::InputMap>()
         .add_event::<input::mouse::CameraLookEvent>()
         .add_systems(
-            Startup,
-            input::xr::setup_xr_actions.before(XRUtilsActionSystemSet::CreateEvents),
-        )
-        .add_systems(
             Update,
             (
                 animation::init_animations,
@@ -46,6 +42,7 @@ impl Plugin for VrControllerPlugin {
                 first_person::setup_first_person,
                 head::set_avatar_head,
                 look::grab_mouse,
+                #[cfg(feature = "xr")]
                 player::set_xr_render_layers,
                 velocity::calc_average_velocity,
                 (
@@ -56,17 +53,26 @@ impl Plugin for VrControllerPlugin {
                         (
                             (
                                 input::keyboard::read_keyboard_input,
+                                #[cfg(feature = "xr")]
                                 input::xr::read_xr_input,
                             ),
                             movement::void_teleport,
                             movement::move_player,
-                            movement::move_xr_root,
+                            #[cfg(feature = "xr")]
+                            movement::move_xr_root_oxr,
                         ),
                     )
                         .chain(),
                 )
                     .chain(),
             ),
+        );
+
+        #[cfg(feature = "xr")]
+        app.add_systems(
+            Startup,
+            input::xr::setup_xr_actions
+                .before(bevy_xr_utils::xr_utils_actions::XRUtilsActionSystemSet::CreateEvents),
         );
 
         embedded_asset!(app, "animation/default-animations.glb");

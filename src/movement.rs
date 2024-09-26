@@ -1,12 +1,9 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy_mod_openxr::{helper_traits::ToVec3, resources::OxrViews};
-use bevy_mod_xr::session::XrTrackingRoot;
 use bevy_tnua::prelude::*;
 
-use crate::{
-    eye_offset::EyeOffset,
-    player::{PlayerBody, PlayerHeight, PlayerJumpHeight, PlayerSpawn, PlayerSpeed, VoidTeleport},
+use crate::player::{
+    PlayerBody, PlayerHeight, PlayerJumpHeight, PlayerSpawn, PlayerSpeed, VoidTeleport,
 };
 
 #[derive(Component, Default)]
@@ -64,12 +61,28 @@ pub fn move_player(
     *last_time = time.elapsed_seconds();
 }
 
-pub fn move_xr_root(
-    player: Query<(&Transform, &Children), (With<PlayerBody>, Without<XrTrackingRoot>)>,
-    eye_offset: Query<&EyeOffset>,
-    mut xr_root: Query<&mut Transform, (With<XrTrackingRoot>, Without<PlayerBody>)>,
-    views: Res<OxrViews>,
+#[cfg(feature = "xr")]
+#[cfg(not(target_family = "wasm"))]
+pub fn move_xr_root_oxr(
+    player: Query<
+        (&Transform, &Children),
+        (
+            With<PlayerBody>,
+            Without<bevy_mod_xr::session::XrTrackingRoot>,
+        ),
+    >,
+    eye_offset: Query<&crate::eye_offset::EyeOffset>,
+    mut xr_root: Query<
+        &mut Transform,
+        (
+            With<bevy_mod_xr::session::XrTrackingRoot>,
+            Without<PlayerBody>,
+        ),
+    >,
+    views: Res<bevy_mod_openxr::resources::OxrViews>,
 ) {
+    use bevy_mod_openxr::helper_traits::ToVec3;
+
     let Ok(mut root_tr) = xr_root.get_single_mut() else {
         return;
     };
