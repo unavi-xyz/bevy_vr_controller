@@ -13,7 +13,7 @@ pub mod input;
 mod look;
 pub mod movement;
 pub mod player;
-mod velocity;
+pub mod velocity;
 
 pub struct VrControllerPlugin;
 
